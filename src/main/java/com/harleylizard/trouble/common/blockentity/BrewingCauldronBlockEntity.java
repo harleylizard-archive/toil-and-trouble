@@ -1,8 +1,10 @@
 package com.harleylizard.trouble.common.blockentity;
 
+import com.harleylizard.trouble.common.ToilAndTrouble;
 import com.harleylizard.trouble.common.block.BrewingCauldron;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleBlockEntityTypes;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleSounds;
+import com.harleylizard.trouble.common.ritual.ConfiguredRitual;
 import com.harleylizard.trouble.common.tags.ToilAndTroubleBlockTags;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -71,7 +73,7 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
     }
 
     public void consumeIngredients() {
-
+        ConfiguredRitual.getRitual(ToilAndTrouble.resourceLocation("summon_cow")).apply(level, getBlockPos());
     }
 
     public Ingredients getIngredients() {
