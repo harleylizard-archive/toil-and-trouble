@@ -1,11 +1,11 @@
 package com.harleylizard.trouble.common.blockentity;
 
-import com.harleylizard.trouble.common.ToilAndTrouble;
 import com.harleylizard.trouble.common.block.BrewingCauldron;
+import com.harleylizard.trouble.common.brewing.BrewingRitual;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleBlockEntityTypes;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleSounds;
-import com.harleylizard.trouble.common.ritual.ConfiguredRitual;
 import com.harleylizard.trouble.common.tags.ToilAndTroubleBlockTags;
+import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.fluid.base.SingleFluidStorage;
@@ -16,13 +16,16 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
@@ -72,8 +75,10 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
         heated = compoundTag.getBoolean("heated");
     }
 
-    public void consumeIngredients() {
-        ConfiguredRitual.getRitual(ToilAndTrouble.resourceLocation("summon_cow")).apply(level, getBlockPos());
+    public void clear() {
+        fluidStorage.amount = 0;
+        fluidStorage.variant = FluidVariant.blank();
+        ingredients.list.clear();
     }
 
     public Ingredients getIngredients() {
@@ -102,11 +107,10 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
     }
 
     // Comments for TheRebelT
-    public static final class Ingredients {
+    public static final class Ingredients implements Iterable<ItemStack> {
         private final List<ItemStack> list = new NonNullList<>(new ArrayList<>(), ItemStack.EMPTY);
 
-        private Ingredients() {
-        }
+        private Ingredients() {}
 
         private CompoundTag save() {
             var compoundTag = new CompoundTag();
@@ -118,6 +122,9 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
             // Save the list of ItemStacks to NBT.
             var listTag = new ListTag();
             for (var itemStack : list) {
+                if (itemStack.isEmpty()) {
+                    continue;
+                }
                 var itemStackTag = new CompoundTag();
                 itemStack.save(itemStackTag);
                 listTag.add(itemStackTag);
@@ -134,16 +141,66 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
             }
         }
 
+        public void consume(BrewingRitual ritual) {
+            for (var ingredient : ritual.getIngredients()) {
+                for (var stack : list) {
+                    if (stack.is(ingredient.getItem())) {
+                        stack.shrink(ingredient.getCount());
+                    }
+                }
+            }
+        }
+
         public boolean addItem(ItemEntity itemEntity) {
             return addItem(itemEntity.getItem());
         }
 
         public boolean addItem(ItemStack itemStack) {
-            return !itemStack.isEmpty() && list.add(itemStack.copyAndClear());
+            if (itemStack.isEmpty()) {
+                return false;
+            }
+            var found = findItemStack(itemStack.getItem());
+            if (found.isEmpty()) {
+                return list.add(itemStack.copyAndClear());
+            }
+            found.setCount(found.getCount() + itemStack.getCount());
+            itemStack.setCount(0);
+            return true;
+        }
+
+        private ItemStack findItemStack(Item item) {
+            for (var itemStack : list) {
+                if (itemStack.is(item) && itemStack.getCount() < itemStack.getMaxStackSize()) {
+                    return itemStack;
+                }
+            }
+            return ItemStack.EMPTY;
+        }
+
+        public boolean canBrewRitual(BrewingRitual ritual) {
+            var ingredients = ritual.getIngredients();
+            var map = new Object2BooleanArrayMap<Item>();
+            for (var itemStack : ingredients) {
+                var item = itemStack.getItem();
+                map.put(item, false);
+
+                for (var stack : list) {
+                    if (stack.is(item)) {
+                        map.put(item, stack.getCount() >= itemStack.getCount());
+                    }
+                }
+            }
+            return map.values().stream().allMatch(Boolean::booleanValue);
         }
 
         public boolean isEmpty() {
             return list.isEmpty();
+        }
+
+        @NotNull
+        @Override
+        public Iterator<ItemStack> iterator() {
+            return list.iterator();
         }
     }
 }

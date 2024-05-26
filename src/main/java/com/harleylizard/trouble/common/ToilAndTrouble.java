@@ -1,7 +1,12 @@
 package com.harleylizard.trouble.common;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.harleylizard.trouble.common.brewing.BrewingRitual;
 import com.harleylizard.trouble.common.registry.*;
 import com.harleylizard.trouble.common.ritual.ConfiguredRitual;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.JsonOps;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -10,6 +15,10 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.Resource;
+
+import java.io.IOException;
+import java.util.Optional;
 
 public final class ToilAndTrouble implements ModInitializer {
     private static final String MOD_ID = "toil-and-trouble";
@@ -30,10 +39,22 @@ public final class ToilAndTrouble implements ModInitializer {
                             output.accept(ToilAndTroubleItems.BREWING_CAULDRON);
                         }).build());
 
-        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(ConfiguredRitual.RELOAD_LISTENER);
+        var serverData = ResourceManagerHelper.get(PackType.SERVER_DATA);
+        serverData.registerReloadListener(ConfiguredRitual.RELOAD_LISTENER);
+        serverData.registerReloadListener(BrewingRitual.RELOAD_LISTENER);
     }
 
     public static ResourceLocation resourceLocation(String path) {
         return new ResourceLocation(MOD_ID, path);
+    }
+
+    public static <T> Optional<T> parseJson(Codec<T> codec, Resource resource) {
+        try (var reader = resource.openAsReader()) {
+            var gson = new GsonBuilder().create();
+            return codec.parse(JsonOps.INSTANCE, gson.fromJson(reader, JsonElement.class)).result();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 }
