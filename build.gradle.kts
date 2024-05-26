@@ -6,6 +6,10 @@ plugins {
 group = "com.harleylizard"
 version = "1.0-SNAPSHOT"
 
+loom {
+    accessWidenerPath = file("src/main/resources/toil-and-trouble.accesswidener")
+}
+
 repositories {
     mavenCentral()
     maven("https://cursemaven.com")

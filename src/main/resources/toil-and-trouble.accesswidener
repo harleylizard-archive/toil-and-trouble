@@ -1,0 +1,4 @@
+accessWidener v1 named
+
+accessible method net/minecraft/world/level/block/BaseEntityBlock createTickerHelper (Lnet/minecraft/world/level/block/entity/BlockEntityType;Lnet/minecraft/world/level/block/entity/BlockEntityType;Lnet/minecraft/world/level/block/entity/BlockEntityTicker;)Lnet/minecraft/world/level/block/entity/BlockEntityTicker;
+accessible method net/minecraft/core/NonNullList <init> (Ljava/util/List;Ljava/lang/Object;)V
