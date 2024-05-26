@@ -8,4 +8,8 @@ public final class RitualType<T extends Ritual> {
     public RitualType(Codec<T> codec) {
         this.codec = codec;
     }
+
+    public Codec<T> getCodec() {
+        return codec;
+    }
 }

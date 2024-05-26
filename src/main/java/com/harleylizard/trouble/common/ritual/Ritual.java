@@ -6,4 +6,6 @@ import net.minecraft.world.level.Level;
 public interface Ritual {
 
     void apply(Level level, BlockPos blockPos);
+
+    RitualType<?> getType();
 }
