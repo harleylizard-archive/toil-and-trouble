@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "id": "toil-and-trouble",
   "version": "${version}",
-  "name": "Example mod",
+  "name": "Toil & Trouble",
   "description": "This is an example description! Tell everyone what your mod is about!",
   "authors": [
     "harleylizard"
   ],
   "contact": {
     "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "sources": "https://github.com/harleylizard/toil-and-trouble"
   },
   "license": "All Rights Reserved",
   "icon": "assets/toil-and-trouble/icon.png",

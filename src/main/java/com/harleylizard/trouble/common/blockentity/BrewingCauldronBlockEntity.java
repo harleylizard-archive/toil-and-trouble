@@ -1,18 +1,37 @@
 package com.harleylizard.trouble.common.blockentity;
 
+import com.harleylizard.trouble.common.block.BrewingCauldron;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleBlockEntityTypes;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.fluid.base.SingleFluidStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
+    private final SingleFluidStorage fluidStorage = new SingleFluidStorage() {
+        @Override
+        protected long getCapacity(FluidVariant variant) {
+            return FluidConstants.BUCKET * 3;
+        }
+
+        @Override
+        protected void onFinalCommit() {
+            level.setBlock(getBlockPos(), BrewingCauldron.setFluidType(getBlockState(), variant), Block.UPDATE_ALL);
+            sync();
+        }
+    };
+
     private final Ingredients ingredients = new Ingredients();
 
     public BrewingCauldronBlockEntity(BlockPos blockPos, BlockState blockState) {
@@ -23,10 +42,9 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
     protected void saveAdditional(CompoundTag compoundTag) {
         super.saveAdditional(compoundTag);
         if (!ingredients.isEmpty()) {
-            var ingredientsTag = new CompoundTag();
-            ingredients.save(ingredientsTag);
-            compoundTag.put("ingredients", ingredientsTag);
+            compoundTag.put("ingredients", ingredients.save());
         }
+        fluidStorage.writeNbt(compoundTag);
     }
 
     @Override
@@ -35,10 +53,20 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
         if (compoundTag.contains("ingredients", Tag.TAG_COMPOUND)) {
             ingredients.load(compoundTag.getCompound("ingredients"));
         }
+        fluidStorage.readNbt(compoundTag);
     }
 
     public Ingredients getIngredients() {
         return ingredients;
+    }
+
+    public SingleFluidStorage getFluidStorage() {
+        return fluidStorage;
+    }
+
+    public static void tick(Level level, BlockPos blockPos, BlockState blockState, BrewingCauldronBlockEntity blockEntity) {
+        if (!level.isClientSide) {
+        }
     }
 
     // Comments for TheRebelT
@@ -46,6 +74,12 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
         private final List<ItemStack> list = new NonNullList<>(new ArrayList<>(), ItemStack.EMPTY);
 
         private Ingredients() {
+        }
+
+        private CompoundTag save() {
+            var compoundTag = new CompoundTag();
+            save(compoundTag);
+            return compoundTag;
         }
 
         private void save(CompoundTag compoundTag) {

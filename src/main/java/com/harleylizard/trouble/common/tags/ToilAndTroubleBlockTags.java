@@ -6,6 +6,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 
 public final class ToilAndTroubleBlockTags {
+    public static final TagKey<Block> HEAT_SOURCE = tagKey("heat_source");
 
     private ToilAndTroubleBlockTags() {}
 
