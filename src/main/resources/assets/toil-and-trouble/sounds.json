@@ -1,0 +1,14 @@
+{
+  "water.splash": {
+    "category": "blocks",
+    "sounds": [
+      "toil-and-trouble:water_splash"
+    ]
+  },
+  "water.boiling": {
+    "category": "blocks",
+    "sounds": [
+      "toil-and-trouble:boiling_water"
+    ]
+  }
+}

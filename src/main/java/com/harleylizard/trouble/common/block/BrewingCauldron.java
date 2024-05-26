@@ -6,9 +6,12 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.AABB;
 
 public interface BrewingCauldron extends EntityBlock {
     EnumProperty<FluidType> FLUID_TYPE = EnumProperty.create("fluid_type", FluidType.class);
+
+    AABB getShape();
 
     static int getLightLevel(BlockState blockState) {
         return getFluidType(blockState) == FluidType.LAVA ? 15 : 0;

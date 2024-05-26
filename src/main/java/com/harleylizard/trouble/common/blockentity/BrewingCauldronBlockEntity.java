@@ -2,6 +2,8 @@ package com.harleylizard.trouble.common.blockentity;
 
 import com.harleylizard.trouble.common.block.BrewingCauldron;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleBlockEntityTypes;
+import com.harleylizard.trouble.common.registry.ToilAndTroubleSounds;
+import com.harleylizard.trouble.common.tags.ToilAndTroubleBlockTags;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.fluid.base.SingleFluidStorage;
@@ -10,10 +12,13 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluids;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +39,9 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
 
     private final Ingredients ingredients = new Ingredients();
 
+    private int ticks;
+    private boolean heated;
+
     public BrewingCauldronBlockEntity(BlockPos blockPos, BlockState blockState) {
         super(ToilAndTroubleBlockEntityTypes.BREWING_CAULDRON, blockPos, blockState);
     }
@@ -45,6 +53,9 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
             compoundTag.put("ingredients", ingredients.save());
         }
         fluidStorage.writeNbt(compoundTag);
+
+        compoundTag.putInt("ticks", ticks);
+        compoundTag.putBoolean("heated", heated);
     }
 
     @Override
@@ -54,6 +65,9 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
             ingredients.load(compoundTag.getCompound("ingredients"));
         }
         fluidStorage.readNbt(compoundTag);
+
+        ticks = compoundTag.getInt("ticks");
+        heated = compoundTag.getBoolean("heated");
     }
 
     public Ingredients getIngredients() {
@@ -64,8 +78,20 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
         return fluidStorage;
     }
 
+    public boolean canBoil() {
+        return heated && fluidStorage.variant.isOf(Fluids.WATER);
+    }
+
     public static void tick(Level level, BlockPos blockPos, BlockState blockState, BrewingCauldronBlockEntity blockEntity) {
         if (!level.isClientSide) {
+            var ticks = blockEntity.ticks;
+            if (ticks % 20 == 0) {
+                blockEntity.heated = level.getBlockState(blockPos.below()).is(ToilAndTroubleBlockTags.HEAT_SOURCE);
+            }
+            if (ticks % 50 == 0 && blockEntity.canBoil()) {
+                level.playSound(null, blockPos, ToilAndTroubleSounds.WATER_BOILING, SoundSource.BLOCKS, 0.5F, level.random.nextFloat() + 0.75F);
+            }
+            blockEntity.ticks = (ticks + 1) % (20 * 3);
         }
     }
 
@@ -102,8 +128,12 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
             }
         }
 
+        public boolean addItem(ItemEntity itemEntity) {
+            return addItem(itemEntity.getItem());
+        }
+
         public boolean addItem(ItemStack itemStack) {
-            return list.add(itemStack);
+            return !itemStack.isEmpty() && list.add(itemStack.copyAndClear());
         }
 
         public boolean isEmpty() {
