@@ -70,6 +70,10 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
         heated = compoundTag.getBoolean("heated");
     }
 
+    public void consumeIngredients() {
+
+    }
+
     public Ingredients getIngredients() {
         return ingredients;
     }

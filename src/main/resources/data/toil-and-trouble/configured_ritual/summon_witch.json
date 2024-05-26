@@ -1,0 +1,6 @@
+{
+  "type": "toil-and-trouble:summon",
+  "entity": {
+    "type": "minecraft:witch"
+  }
+}

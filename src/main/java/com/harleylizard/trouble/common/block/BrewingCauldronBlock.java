@@ -73,6 +73,7 @@ public final class BrewingCauldronBlock extends Block implements BrewingCauldron
                 var z = itemEntity.getZ();
 
                 level.playSound(null, x, y, z, ToilAndTroubleSounds.WATER_SPLASH, SoundSource.BLOCKS, 0.75F, level.random.nextFloat() + 1.0F);
+                blockEntity.consumeIngredients();
                 blockEntity.sync();
             }
         }
