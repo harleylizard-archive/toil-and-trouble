@@ -5,8 +5,10 @@ import com.harleylizard.trouble.common.brewing.BrewingRitual;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleBlockEntityTypes;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleSounds;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorageUtil;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -35,14 +37,22 @@ import java.util.stream.Stream;
 
 public final class BrewingCauldronBlock extends Block implements BrewingCauldron {
     private static final VoxelShape SHAPE = Stream.of(
-            Block.box(14, 2, 2, 16, 16, 14),
-            Block.box(0, 2, 0, 16, 16, 2),
-            Block.box(0, 2, 14, 16, 16, 16),
-            Block.box(0, 2, 2, 2, 16, 14),
-            Block.box(0, 0, 0, 16, 2, 16)
+            Block.box(11, 0, 2, 13, 2, 3),
+            Block.box(2, 2, 2, 14, 4, 14),
+            Block.box(13, 0, 11, 14, 2, 14),
+            Block.box(13, 0, 2, 14, 2, 5),
+            Block.box(2, 0, 2, 3, 2, 5),
+            Block.box(2, 0, 11, 3, 2, 14),
+            Block.box(3, 0, 13, 5, 2, 14),
+            Block.box(3, 0, 2, 5, 2, 3),
+            Block.box(11, 0, 13, 13, 2, 14),
+            Block.box(0, 4, 0, 16, 15, 2),
+            Block.box(0, 4, 14, 16, 15, 16),
+            Block.box(0, 4, 2, 2, 15, 14),
+            Block.box(14, 4, 2, 16, 15, 14)
     ).reduce((v1, v2) -> Shapes.join(v1, v2, BooleanOp.OR)).get();
 
-    private static AABB AABB = Block.box(2, 2, 2, 14, 16, 14).bounds();
+    private static AABB AABB = Block.box(2, 4, 2, 14, 15, 14).bounds();
 
     public BrewingCauldronBlock(Properties properties) {
         super(properties);
@@ -80,6 +90,14 @@ public final class BrewingCauldronBlock extends Block implements BrewingCauldron
                     if (ritual != null) {
                         ritual.apply(level, blockPos);
                         ingredients.consume(brewingRitual);
+
+                        var fluidStorage = blockEntity.getFluidStorage();
+                        if (!fluidStorage.isResourceBlank()) {
+                            try (var transaction = Transaction.openOuter()) {
+                                fluidStorage.extract(fluidStorage.variant, FluidConstants.BUCKET, transaction);
+                                transaction.commit();
+                            }
+                        }
                     }
                 }
                 blockEntity.sync();

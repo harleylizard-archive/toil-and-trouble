@@ -1,11 +1,13 @@
 package com.harleylizard.trouble.common.ritual;
 
 import com.harleylizard.trouble.common.registry.ToilAndTroubleRitualTypes;
+import com.harleylizard.trouble.common.registry.ToilAndTroubleSounds;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 
 public final class SummonRitual implements Ritual {
@@ -32,6 +34,8 @@ public final class SummonRitual implements Ritual {
             var z = blockPos.getZ() + 0.5D;
             entity.setPos(x, y, z);
             level.addFreshEntity(entity);
+
+            level.playSound(null, blockPos, ToilAndTroubleSounds.SUMMON, SoundSource.BLOCKS, 1.0F, 1.0F);
         }
     }
 

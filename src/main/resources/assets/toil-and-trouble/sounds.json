@@ -1,4 +1,10 @@
 {
+  "summon": {
+    "category": "blocks",
+    "sounds": [
+      "toil-and-trouble:summon"
+    ]
+  },
   "water.splash": {
     "category": "blocks",
     "sounds": [

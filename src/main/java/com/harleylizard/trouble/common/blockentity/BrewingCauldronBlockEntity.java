@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.fluid.base.SingleFluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -37,8 +38,15 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
 
         @Override
         protected void onFinalCommit() {
+            if (isResourceBlank()) ingredients.clear();
+
             level.setBlock(getBlockPos(), BrewingCauldron.setFluidType(getBlockState(), variant), Block.UPDATE_ALL);
             sync();
+        }
+
+        @Override
+        protected boolean canInsert(FluidVariant variant) {
+            return ingredients.isEmpty();
         }
     };
 
@@ -66,6 +74,7 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
     @Override
     public void load(CompoundTag compoundTag) {
         super.load(compoundTag);
+        ingredients.clear();
         if (compoundTag.contains("ingredients", Tag.TAG_COMPOUND)) {
             ingredients.load(compoundTag.getCompound("ingredients"));
         }
@@ -76,9 +85,13 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
     }
 
     public void clear() {
-        fluidStorage.amount = 0;
-        fluidStorage.variant = FluidVariant.blank();
-        ingredients.list.clear();
+        if (!fluidStorage.isResourceBlank()) {
+            ingredients.clear();
+            try (var transaction = Transaction.openOuter()) {
+                fluidStorage.extract(fluidStorage.variant, fluidStorage.amount, transaction);
+                transaction.commit();
+            }
+        }
     }
 
     public Ingredients getIngredients() {
@@ -90,7 +103,7 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
     }
 
     public boolean canBoil() {
-        return heated && fluidStorage.variant.isOf(Fluids.WATER);
+        return heated && fluidStorage.variant.isOf(Fluids.WATER) && fluidStorage.amount >= FluidConstants.BUCKET;
     }
 
     public static void tick(Level level, BlockPos blockPos, BlockState blockState, BrewingCauldronBlockEntity blockEntity) {
@@ -98,6 +111,7 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
             var ticks = blockEntity.ticks;
             if (ticks % 20 == 0) {
                 blockEntity.heated = level.getBlockState(blockPos.below()).is(ToilAndTroubleBlockTags.HEAT_SOURCE);
+                blockEntity.sync();
             }
             if (ticks % 50 == 0 && blockEntity.canBoil()) {
                 level.playSound(null, blockPos, ToilAndTroubleSounds.WATER_BOILING, SoundSource.BLOCKS, 0.5F, level.random.nextFloat() + 0.75F);
@@ -193,8 +207,12 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
             return map.values().stream().allMatch(Boolean::booleanValue);
         }
 
+        private void clear() {
+            list.clear();
+        }
+
         public boolean isEmpty() {
-            return list.isEmpty();
+            return list.isEmpty() || list.stream().allMatch(ItemStack::isEmpty);
         }
 
         @NotNull

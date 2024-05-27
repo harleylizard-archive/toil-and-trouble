@@ -1,0 +1,13 @@
+{
+  "ingredients": [
+    {
+      "id": "minecraft:diamond",
+      "Count": 1
+    },
+    {
+      "id": "minecraft:wheat",
+      "Count": 1
+    }
+  ],
+  "configured-ritual": "toil-and-trouble:summon_witch"
+}

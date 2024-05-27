@@ -12,10 +12,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Iterator;
 import java.util.List;
 
-public final class BrewingRitual {
+public final class BrewingRitual implements HasIngredients {
     private static final MultiMap<Item, BrewingRitual> MULTI_MAP = MultiMap.mutableOf();
 
     public static final Codec<BrewingRitual> CODEC = RecordCodecBuilder.create(builder -> builder.group(ItemStack.CODEC.listOf().fieldOf("ingredients").forGetter(BrewingRitual::getIngredients), ResourceLocation.CODEC.fieldOf("configured-ritual").forGetter(brewingRitual -> brewingRitual.configuredRitual)).apply(builder, BrewingRitual::new));
@@ -53,8 +55,15 @@ public final class BrewingRitual {
         return ConfiguredRitual.getRitual(configuredRitual);
     }
 
+    @Override
     public List<ItemStack> getIngredients() {
         return ingredients;
+    }
+
+    @NotNull
+    @Override
+    public Iterator<ItemStack> iterator() {
+        return ingredients.iterator();
     }
 
     public static BrewingRitual getRitual(BrewingCauldronBlockEntity.Ingredients ingredients) {

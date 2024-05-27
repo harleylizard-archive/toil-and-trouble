@@ -6,12 +6,14 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvent;
 
 public final class ToilAndTroubleSounds {
+    public static final SoundEvent SUMMON = soundEvent("summon");
     public static final SoundEvent WATER_SPLASH = soundEvent("water.splash");
     public static final SoundEvent WATER_BOILING = soundEvent("water.boiling");
 
     private ToilAndTroubleSounds() {}
 
     public static void register() {
+        register("summon", SUMMON);
         register("water_splash", WATER_SPLASH);
         register("water_boiling", WATER_BOILING);
     }
