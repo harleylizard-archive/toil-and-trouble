@@ -1,4 +1,4 @@
-package com.harleylizard.trouble.client;
+package com.harleylizard.trouble.client.renderer;
 
 import com.harleylizard.trouble.common.blockentity.BrewingCauldronBlockEntity;
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;

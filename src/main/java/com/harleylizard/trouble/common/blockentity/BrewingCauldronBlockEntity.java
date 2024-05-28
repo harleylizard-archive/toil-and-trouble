@@ -1,8 +1,10 @@
 package com.harleylizard.trouble.common.blockentity;
 
+import com.harleylizard.trouble.common.block.BellowsBlock;
 import com.harleylizard.trouble.common.block.BrewingCauldron;
 import com.harleylizard.trouble.common.brewing.BrewingRitual;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleBlockEntityTypes;
+import com.harleylizard.trouble.common.registry.ToilAndTroubleBlocks;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleSounds;
 import com.harleylizard.trouble.common.tags.ToilAndTroubleBlockTags;
 import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
@@ -11,6 +13,7 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.fluid.base.SingleFluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -53,7 +56,7 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
     private final Ingredients ingredients = new Ingredients();
 
     private int ticks;
-    private boolean heated;
+    private int heat;
 
     public BrewingCauldronBlockEntity(BlockPos blockPos, BlockState blockState) {
         super(ToilAndTroubleBlockEntityTypes.BREWING_CAULDRON, blockPos, blockState);
@@ -68,7 +71,7 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
         fluidStorage.writeNbt(compoundTag);
 
         compoundTag.putInt("ticks", ticks);
-        compoundTag.putBoolean("heated", heated);
+        compoundTag.putInt("heat", heat);
     }
 
     @Override
@@ -81,7 +84,7 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
         fluidStorage.readNbt(compoundTag);
 
         ticks = compoundTag.getInt("ticks");
-        heated = compoundTag.getBoolean("heated");
+        heat = compoundTag.getInt("heat");
     }
 
     public void clear() {
@@ -103,14 +106,36 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
     }
 
     public boolean canBoil() {
-        return heated && fluidStorage.variant.isOf(Fluids.WATER) && fluidStorage.amount >= FluidConstants.BUCKET;
+        return heat >= calculateTimeReduction() && fluidStorage.variant.isOf(Fluids.WATER) && fluidStorage.amount >= FluidConstants.BUCKET;
+    }
+
+    private int calculateTimeReduction() {
+        var i = 75;
+        for (var direction : Direction.Plane.HORIZONTAL) {
+            var blockState = level.getBlockState(getBlockPos().relative(direction));
+            if (blockState.is(ToilAndTroubleBlocks.BELLOWS) && BellowsBlock.getDirection(blockState) == direction.getOpposite()) {
+                i -= 15;
+            }
+        }
+        return i;
     }
 
     public static void tick(Level level, BlockPos blockPos, BlockState blockState, BrewingCauldronBlockEntity blockEntity) {
         if (!level.isClientSide) {
             var ticks = blockEntity.ticks;
             if (ticks % 20 == 0) {
-                blockEntity.heated = level.getBlockState(blockPos.below()).is(ToilAndTroubleBlockTags.HEAT_SOURCE);
+                if (blockEntity.fluidStorage.variant.isOf(Fluids.WATER)) {
+                    var heat = blockEntity.heat;
+                    if (level.getBlockState(blockPos.below()).is(ToilAndTroubleBlockTags.HEAT_SOURCE)) {
+                        if (heat < 75) {
+                            blockEntity.heat++;
+                        }
+                    } else if (heat > 0) {
+                        blockEntity.heat = Math.max(heat - 4, 0);
+                    }
+                } else {
+                    blockEntity.heat = 0;
+                }
                 blockEntity.sync();
             }
             if (ticks % 50 == 0 && blockEntity.canBoil()) {

@@ -36,6 +36,7 @@ public final class ToilAndTrouble implements ModInitializer {
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, resourceLocation("creative_tab"), FabricItemGroup.builder()
                         .title(Component.translatable("itemGroup.toilAndTrouble"))
                         .displayItems((itemDisplayParameters, output) -> {
+                            output.accept(ToilAndTroubleItems.BELLOWS);
                             output.accept(ToilAndTroubleItems.BREWING_CAULDRON);
                         }).build());
 

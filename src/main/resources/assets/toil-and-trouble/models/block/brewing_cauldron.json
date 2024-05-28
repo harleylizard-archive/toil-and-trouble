@@ -4,7 +4,8 @@
 		"particle": "toil-and-trouble:block/brewing_cauldron",
 		"side": "toil-and-trouble:block/brewing_cauldron",
 		"top": "toil-and-trouble:block/brewing_cauldron_top",
-		"inside": "toil-and-trouble:block/brewing_cauldron_inside"
+		"inside": "toil-and-trouble:block/brewing_cauldron_inside",
+		"inside_bottom": "toil-and-trouble:block/brewing_cauldron_inside_bottom"
 	},
 	"elements": [
 		{
@@ -129,8 +130,7 @@
 				"east": {"uv": [2, 1, 14, 12], "rotation": 180, "texture": "#inside"},
 				"south": {"uv": [2, 1, 14, 12], "rotation": 180, "texture": "#inside"},
 				"west": {"uv": [2, 1, 14, 12], "rotation": 180, "texture": "#inside"},
-				"up": {"uv": [0, 0, 12, 12], "texture": "#missing"},
-				"down": {"uv": [0, 0, 12, 12], "texture": "#missing"}
+				"up": {"uv": [2, 2, 14, 14], "texture": "#inside_bottom"}
 			}
 		}
 	]

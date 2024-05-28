@@ -8,11 +8,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
 public final class ToilAndTroubleItems {
+    public static final Item BELLOWS = blockItem(ToilAndTroubleBlocks.BELLOWS);
     public static final Item BREWING_CAULDRON = blockItem(ToilAndTroubleBlocks.BREWING_CAULDRON);
 
     private ToilAndTroubleItems() {}
 
     public static void register() {
+        register("bellows", BELLOWS);
         register("brewing_cauldron", BREWING_CAULDRON);
     }
 

@@ -13,6 +13,7 @@ loom {
 repositories {
     mavenCentral()
     maven("https://cursemaven.com")
+    maven("https://libs.azuredoom.com:4443/mods")
 }
 
 dependencies {
@@ -24,6 +25,10 @@ dependencies {
 
     modImplementation("curse.maven:william-wythers-overhauled-overworld-921022:4793728")
     modImplementation("curse.maven:falling-tree-349559:5010620")
+
+    modImplementation("mod.azure.azurelib:azurelib-fabric-1.20.1:2.0.22") {
+        isTransitive = false
+    }
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
