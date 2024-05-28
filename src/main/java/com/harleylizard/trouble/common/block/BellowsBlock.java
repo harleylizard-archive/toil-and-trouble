@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public final class BellowsBlock extends Block implements EntityBlock {
-    private static final VoxelShape SHAPE = Maths.rotateShape(Axis.XP.rotation(90.0F), Stream.of(
+    private static final VoxelShape SHAPE = Maths.rotateShape(Axis.XP.rotationDegrees(90.0F), Stream.of(
             Block.box(1, 1, 13, 15, 15, 16),
             Block.box(2, 2, 5, 14, 14, 13),
             Block.box(1, 1, 2, 15, 15, 5),

@@ -1,5 +1,6 @@
 package com.harleylizard.trouble.common.brewing;
 
+import com.harleylizard.trouble.common.DeprecatedRegistry;
 import com.harleylizard.trouble.common.MultiMap;
 import com.harleylizard.trouble.common.ToilAndTrouble;
 import com.harleylizard.trouble.common.blockentity.BrewingCauldronBlockEntity;
@@ -18,6 +19,8 @@ import java.util.Iterator;
 import java.util.List;
 
 public final class BrewingRitual implements HasIngredients {
+    public static final DeprecatedRegistry<BrewingRitual> REGISTRY = new DeprecatedRegistry<>();
+
     private static final MultiMap<Item, BrewingRitual> MULTI_MAP = MultiMap.mutableOf();
 
     public static final Codec<BrewingRitual> CODEC = RecordCodecBuilder.create(builder -> builder.group(ItemStack.CODEC.listOf().fieldOf("ingredients").forGetter(BrewingRitual::getIngredients), ResourceLocation.CODEC.fieldOf("configured-ritual").forGetter(brewingRitual -> brewingRitual.configuredRitual)).apply(builder, BrewingRitual::new));
@@ -31,6 +34,7 @@ public final class BrewingRitual implements HasIngredients {
         @Override
         public void onResourceManagerReload(ResourceManager resourceManager) {
             MULTI_MAP.clear();
+            DeprecatedRegistry.clear(REGISTRY);
             for (var resourceEntry : resourceManager.listResources("brewing/ritual", resourceLocation -> resourceLocation.getPath().endsWith(".json")).entrySet()) {
                 var parsed = ToilAndTrouble.parseJson(CODEC, resourceEntry.getValue());
                 if (parsed.isPresent()) {
@@ -38,6 +42,7 @@ public final class BrewingRitual implements HasIngredients {
                     for (var ingredient : brewingRitual.ingredients) {
                         MULTI_MAP.put(ingredient.getItem(), brewingRitual);
                     }
+                    DeprecatedRegistry.register(REGISTRY, resourceEntry, brewingRitual);
                 }
             }
         }

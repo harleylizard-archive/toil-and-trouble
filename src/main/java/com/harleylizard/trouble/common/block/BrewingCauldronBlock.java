@@ -5,10 +5,8 @@ import com.harleylizard.trouble.common.brewing.BrewingRitual;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleBlockEntityTypes;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleSounds;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorageUtil;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -84,21 +82,10 @@ public final class BrewingCauldronBlock extends Block implements BrewingCauldron
                 var z = itemEntity.getZ();
 
                 level.playSound(null, x, y, z, ToilAndTroubleSounds.WATER_SPLASH, SoundSource.BLOCKS, 0.75F, level.random.nextFloat() + 1.0F);
+
                 var brewingRitual = BrewingRitual.getRitual(ingredients);
                 if (brewingRitual != null) {
-                    var ritual = brewingRitual.getRitual();
-                    if (ritual != null) {
-                        ritual.apply(level, blockPos);
-                        ingredients.consume(brewingRitual);
-
-                        var fluidStorage = blockEntity.getFluidStorage();
-                        if (!fluidStorage.isResourceBlank()) {
-                            try (var transaction = Transaction.openOuter()) {
-                                fluidStorage.extract(fluidStorage.variant, FluidConstants.BUCKET, transaction);
-                                transaction.commit();
-                            }
-                        }
-                    }
+                    blockEntity.queue(brewingRitual);
                 }
                 blockEntity.sync();
             }

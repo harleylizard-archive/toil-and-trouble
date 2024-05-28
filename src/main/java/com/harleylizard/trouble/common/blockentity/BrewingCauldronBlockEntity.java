@@ -17,7 +17,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
@@ -28,9 +30,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
     private final SingleFluidStorage fluidStorage = new SingleFluidStorage() {
@@ -54,9 +54,11 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
     };
 
     private final Ingredients ingredients = new Ingredients();
+    private final Queue<BrewingRitual> queue = new LinkedList<>();
 
     private int ticks;
     private int heat;
+    private int delay;
 
     public BrewingCauldronBlockEntity(BlockPos blockPos, BlockState blockState) {
         super(ToilAndTroubleBlockEntityTypes.BREWING_CAULDRON, blockPos, blockState);
@@ -72,6 +74,16 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
 
         compoundTag.putInt("ticks", ticks);
         compoundTag.putInt("heat", heat);
+        compoundTag.putInt("delay", delay);
+
+        if (queue.isEmpty()) {
+            var listTag = new ListTag();
+            for (var ritual : queue) {
+                var tag = StringTag.valueOf(BrewingRitual.REGISTRY.get(ritual).toString());
+                listTag.add(tag);
+            }
+            compoundTag.put("queue", listTag);
+        }
     }
 
     @Override
@@ -85,6 +97,40 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
 
         ticks = compoundTag.getInt("ticks");
         heat = compoundTag.getInt("heat");
+        delay = compoundTag.getInt("delay");
+
+        queue.clear();
+        if (compoundTag.contains("queue", Tag.TAG_LIST)) {
+            var listTag = compoundTag.getList("queue", Tag.TAG_STRING);
+            for (var tag : listTag) {
+                queue.offer(BrewingRitual.REGISTRY.get(new ResourceLocation(tag.getAsString())));
+            }
+        }
+    }
+
+    public void queue(BrewingRitual brewingRitual) {
+        queue.offer(brewingRitual);
+    }
+
+    public void poll() {
+        if (!queue.isEmpty()) {
+            var brewingRitual = queue.poll();
+            if (!ingredients.canBrewRitual(brewingRitual)) {
+                return;
+            }
+            var ritual = brewingRitual.getRitual();
+            if (ritual != null) {
+                ritual.apply(level, getBlockPos());
+
+                ingredients.consume(brewingRitual);
+                if (!fluidStorage.isResourceBlank()) {
+                    try (var transaction = Transaction.openOuter()) {
+                        fluidStorage.extract(fluidStorage.variant, FluidConstants.BUCKET, transaction);
+                        transaction.commit();
+                    }
+                }
+            }
+        }
     }
 
     public void clear() {
@@ -122,8 +168,16 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
 
     public static void tick(Level level, BlockPos blockPos, BlockState blockState, BrewingCauldronBlockEntity blockEntity) {
         if (!level.isClientSide) {
+            if (blockEntity.delay >= 2) {
+                blockEntity.poll();
+                blockEntity.delay = 0;
+                blockEntity.sync();
+            }
             var ticks = blockEntity.ticks;
             if (ticks % 20 == 0) {
+                if (!blockEntity.queue.isEmpty()) {
+                    blockEntity.delay++;
+                }
                 if (blockEntity.fluidStorage.variant.isOf(Fluids.WATER)) {
                     var heat = blockEntity.heat;
                     if (level.getBlockState(blockPos.below()).is(ToilAndTroubleBlockTags.HEAT_SOURCE)) {
