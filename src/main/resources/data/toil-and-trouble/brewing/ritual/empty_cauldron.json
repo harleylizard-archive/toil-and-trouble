@@ -1,12 +1,13 @@
 {
+  "type": "toil-and-trouble:brewing_ritual",
   "ingredients": [
     {
       "id": "minecraft:apple",
-      "Count": 1
+      "count": 1
     },
     {
       "id": "minecraft:wheat",
-      "Count": 1
+      "count": 1
     }
   ],
   "configured-ritual": "toil-and-trouble:empty_cauldron"

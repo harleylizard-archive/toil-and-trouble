@@ -1,15 +1,13 @@
 package com.harleylizard.trouble.common.block;
 
 import com.harleylizard.trouble.common.blockentity.BrewingCauldronBlockEntity;
-import com.harleylizard.trouble.common.brewing.BrewingRitual;
-import com.harleylizard.trouble.common.brewing.HasIngredients;
+import com.harleylizard.trouble.common.brewing.ItemLookup;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleBlockEntityTypes;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleSounds;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorageUtil;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -79,7 +77,7 @@ public final class BrewingCauldronBlock extends Block implements BrewingCauldron
     public void entityInside(BlockState blockState, Level level, BlockPos blockPos, Entity entity) {
         if (level.getBlockEntity(blockPos) instanceof BrewingCauldronBlockEntity blockEntity) {
             var ingredients = blockEntity.getIngredients();
-            if (blockEntity.canBoil() && entity instanceof ItemEntity itemEntity && isIntersecting(blockPos, itemEntity) && ingredients.addItem(itemEntity)) {
+            if (blockEntity.canBoil() && entity instanceof ItemEntity itemEntity && isIntersecting(blockPos, itemEntity) && ingredients.add(itemEntity)) {
                 var x = itemEntity.getX();
                 var y = itemEntity.getY();
                 var z = itemEntity.getZ();
@@ -89,7 +87,7 @@ public final class BrewingCauldronBlock extends Block implements BrewingCauldron
                     level.addParticle(ParticleTypes.SPLASH, x, y, z, 0.0F, 0.0F, 0.0F);
                 }
 
-                var hasIngredients = HasIngredients.getFrom(ingredients);
+                var hasIngredients = ItemLookup.getAll(ingredients);
                 if (hasIngredients != null) {
                     blockEntity.queue(hasIngredients);
                 }

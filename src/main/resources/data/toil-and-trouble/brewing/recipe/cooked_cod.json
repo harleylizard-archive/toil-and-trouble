@@ -1,8 +1,9 @@
 {
+  "type": "toil-and-trouble:brewing_recipe",
   "ingredients": [
     {
       "id": "minecraft:cod",
-      "Count": 1
+      "count": 1
     }
   ],
   "result": {

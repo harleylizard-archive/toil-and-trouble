@@ -1,6 +1,7 @@
 package com.harleylizard.trouble.common.brewing;
 
 import com.harleylizard.trouble.common.blockentity.BrewingCauldronBlockEntity;
+import com.harleylizard.trouble.common.registry.ToilAndTroubleHasIngredientListTypes;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleSounds;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -9,37 +10,35 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.Iterator;
 import java.util.List;
 
-public final class BrewingRecipe implements HasIngredients {
+public final class BrewingRecipe implements HasIngredientList {
     public static final Codec<BrewingRecipe> CODEC = RecordCodecBuilder.create(builder -> {
         return builder.group(
-                        HasIngredients.codecIngredients().forGetter(brewingRecipe -> brewingRecipe.list),
-                        ItemStack.CODEC.fieldOf("result").forGetter(brewingRecipe -> brewingRecipe.result))
-                .apply(builder, BrewingRecipe::new);
+                ItemStackInfo.CODEC.listOf().fieldOf("ingredients").forGetter(BrewingRecipe::getIngredientList),
+                ItemStack.CODEC.fieldOf("result").forGetter(brewingRecipe -> brewingRecipe.itemStack)).apply(builder, BrewingRecipe::new);
     });
 
-    private final List<ItemStack> list;
-    private final ItemStack result;
+    private final List<ItemStackInfo> ingredientList;
+    private final ItemStack itemStack;
 
-    private BrewingRecipe(List<ItemStack> list, ItemStack result) {
-        this.list = list;
-        this.result = result;
+    private BrewingRecipe(List<ItemStackInfo> ingredientList, ItemStack itemStack) {
+        this.ingredientList = ingredientList;
+        this.itemStack = itemStack;
     }
 
     @Override
-    public void whenBrewed(BrewingCauldronBlockEntity blockEntity, BrewingCauldronBlockEntity.Ingredients ingredients) {
+    public void brew(BrewingCauldronBlockEntity blockEntity) {
+        var ingredients = blockEntity.getIngredients();
         ingredients.consume(this);
 
+        var level = blockEntity.getLevel();
         var blockPos = blockEntity.getBlockPos();
         var x = blockPos.getX() + 0.5D;
         var y = blockPos.getY() + 1.0D;
         var z = blockPos.getZ() + 0.5D;
-        var level = blockEntity.getLevel();
-        Containers.dropItemStack(level, x, y, z, result.copy());
+        Containers.dropItemStack(level, x, y, z, itemStack.copy());
 
         level.playSound(null, blockPos, ToilAndTroubleSounds.SUMMON, SoundSource.BLOCKS, 1.0F, 1.0F);
 
@@ -53,13 +52,12 @@ public final class BrewingRecipe implements HasIngredients {
     }
 
     @Override
-    public int getSize() {
-        return list.size();
+    public List<ItemStackInfo> getIngredientList() {
+        return ingredientList;
     }
 
-    @NotNull
     @Override
-    public Iterator<ItemStack> iterator() {
-        return list.iterator();
+    public HasIngredientListType<?> getType() {
+        return ToilAndTroubleHasIngredientListTypes.BREWING_RECIPE;
     }
 }

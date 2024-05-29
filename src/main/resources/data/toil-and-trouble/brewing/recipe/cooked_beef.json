@@ -1,8 +1,13 @@
 {
+  "type": "toil-and-trouble:brewing_recipe",
   "ingredients": [
     {
-      "id": "minecraft:beef",
-      "Count": 1
+      "type": "minecraft:beef",
+      "count": 1
+    },
+    {
+      "type": "#minecraft:wool",
+      "count": 1
     }
   ],
   "result": {
