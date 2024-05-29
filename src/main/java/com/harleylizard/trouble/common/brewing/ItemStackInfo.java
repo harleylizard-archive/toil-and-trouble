@@ -32,14 +32,14 @@ public final class ItemStackInfo implements Predicate<ItemStack> {
 
     @Override
     public boolean test(ItemStack itemStack) {
-        if (itemStack.getCount() <= count) {
-            return false;
+        if (itemStack.getCount() >= count) {
+            var resourceKey = either.left();
+            if (resourceKey.isPresent()) {
+                return itemStack.is(BuiltInRegistries.ITEM.getHolderOrThrow(resourceKey.get()));
+            }
+            return either.right().filter(itemStack::is).isPresent();
         }
-        var resourceKey = either.left();
-        if (resourceKey.isPresent()) {
-            return itemStack.is(BuiltInRegistries.ITEM.getHolderOrThrow(resourceKey.get()));
-        }
-        return either.right().filter(itemStack::is).isPresent();
+        return false;
     }
 
     public List<Item> getItems() {

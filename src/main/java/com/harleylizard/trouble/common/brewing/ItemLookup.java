@@ -5,6 +5,7 @@ import com.harleylizard.trouble.common.blockentity.BrewingCauldronBlockEntity;
 import com.harleylizard.trouble.common.blockentity.BrewingCauldronIngredients;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import java.util.List;
 
@@ -26,6 +27,9 @@ public final class ItemLookup {
     }
 
     public static List<HasIngredientList> getAll(Item item) {
+        if (item == Items.AIR) {
+            return List.of();
+        }
         return MULTI_MAP.get(item);
     }
 

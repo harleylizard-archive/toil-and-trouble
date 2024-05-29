@@ -3,6 +3,7 @@ package com.harleylizard.trouble.common.blockentity;
 import com.harleylizard.trouble.common.block.BellowsBlock;
 import com.harleylizard.trouble.common.block.BrewingCauldron;
 import com.harleylizard.trouble.common.brewing.HasIngredientList;
+import com.harleylizard.trouble.common.brewing.ItemLookup;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleBlockEntityTypes;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleBlocks;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleSounds;
@@ -112,15 +113,14 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
     public void poll() {
         if (!queue.isEmpty()) {
             var hasIngredients = queue.poll();
-            if (!ingredients.canBrew(hasIngredients)) {
-                return;
-            }
-            hasIngredients.brew(this);
-            if (!ingredients.isEmpty()) {
-                //var next = HasIngredientListOld.getFrom(ingredients);
-                //if (next != null) {
-                //    queue(next);
-                //}
+            if (ingredients.canBrew(hasIngredients)) {
+                hasIngredients.brew(this);
+                if (!ingredients.isEmpty()) {
+                    var next = ItemLookup.getAll(ingredients);
+                    if (next != null) {
+                        queue(next);
+                    }
+                }
             }
         }
     }

@@ -2,11 +2,11 @@
   "type": "toil-and-trouble:brewing_ritual",
   "ingredients": [
     {
-      "id": "minecraft:apple",
+      "item": "minecraft:apple",
       "count": 1
     },
     {
-      "id": "minecraft:wheat",
+      "item": "minecraft:wheat",
       "count": 1
     }
   ],

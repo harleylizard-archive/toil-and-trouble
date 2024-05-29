@@ -92,7 +92,9 @@ public final class BrewingCauldronIngredients implements Iterable<ItemStack> {
 
         for (var itemStackInfo : hasIngredientList.getIngredientList()) {
             for (var ingredient : list) {
-                map.put(itemStackInfo, itemStackInfo.test(ingredient));
+                if (itemStackInfo.test(ingredient)) {
+                    map.put(itemStackInfo, true);
+                }
             }
         }
         var values = map.values();
@@ -102,7 +104,7 @@ public final class BrewingCauldronIngredients implements Iterable<ItemStack> {
                 i++;
             }
         }
-        return i == values.size();
+        return i == ingredientList.size();
     }
 
     public boolean isEmpty() {

@@ -2,7 +2,7 @@
   "type": "toil-and-trouble:brewing_recipe",
   "ingredients": [
     {
-      "id": "minecraft:rabbit",
+      "item": "minecraft:rabbit",
       "count": 1
     }
   ],

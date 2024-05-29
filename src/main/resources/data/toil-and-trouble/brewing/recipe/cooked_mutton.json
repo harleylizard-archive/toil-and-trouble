@@ -2,7 +2,7 @@
   "type": "toil-and-trouble:brewing_recipe",
   "ingredients": [
     {
-      "id": "minecraft:mutton",
+      "item": "minecraft:mutton",
       "count": 1
     }
   ],

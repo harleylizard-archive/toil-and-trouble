@@ -2,7 +2,7 @@
   "type": "toil-and-trouble:brewing_recipe",
   "ingredients": [
     {
-      "id": "minecraft:chicken",
+      "item": "minecraft:chicken",
       "count": 1
     }
   ],

@@ -2,7 +2,7 @@
   "type": "toil-and-trouble:brewing_recipe",
   "ingredients": [
     {
-      "id": "minecraft:salmon",
+      "item": "minecraft:salmon",
       "count": 1
     }
   ],
