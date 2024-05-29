@@ -76,7 +76,7 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
         compoundTag.putInt("heat", heat);
         compoundTag.putInt("delay", delay);
 
-        if (queue.isEmpty()) {
+        if (!queue.isEmpty()) {
             var listTag = new ListTag();
             for (var ritual : queue) {
                 var tag = StringTag.valueOf(BrewingRitual.REGISTRY.get(ritual).toString());
@@ -99,8 +99,8 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
         heat = compoundTag.getInt("heat");
         delay = compoundTag.getInt("delay");
 
-        queue.clear();
         if (compoundTag.contains("queue", Tag.TAG_LIST)) {
+            queue.clear();
             var listTag = compoundTag.getList("queue", Tag.TAG_STRING);
             for (var tag : listTag) {
                 queue.offer(BrewingRitual.REGISTRY.get(new ResourceLocation(tag.getAsString())));
@@ -120,9 +120,10 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
             }
             var ritual = brewingRitual.getRitual();
             if (ritual != null) {
+                ingredients.consume(brewingRitual);
+
                 ritual.apply(level, getBlockPos());
 
-                ingredients.consume(brewingRitual);
                 if (!fluidStorage.isResourceBlank()) {
                     try (var transaction = Transaction.openOuter()) {
                         fluidStorage.extract(fluidStorage.variant, FluidConstants.BUCKET, transaction);
@@ -156,11 +157,11 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
     }
 
     private int calculateTimeReduction() {
-        var i = 75;
+        var i = 50;
         for (var direction : Direction.Plane.HORIZONTAL) {
             var blockState = level.getBlockState(getBlockPos().relative(direction));
             if (blockState.is(ToilAndTroubleBlocks.BELLOWS) && BellowsBlock.getDirection(blockState) == direction.getOpposite()) {
-                i -= 15;
+                i -= 11;
             }
         }
         return i;
@@ -168,7 +169,11 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
 
     public static void tick(Level level, BlockPos blockPos, BlockState blockState, BrewingCauldronBlockEntity blockEntity) {
         if (!level.isClientSide) {
-            if (blockEntity.delay >= 2) {
+            var hasFluid = blockEntity.fluidStorage.variant.isOf(Fluids.WATER);
+            if (!hasFluid) {
+                blockEntity.heat = 0;
+            }
+            if (blockEntity.delay >= 3) {
                 blockEntity.poll();
                 blockEntity.delay = 0;
                 blockEntity.sync();
@@ -178,7 +183,7 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
                 if (!blockEntity.queue.isEmpty()) {
                     blockEntity.delay++;
                 }
-                if (blockEntity.fluidStorage.variant.isOf(Fluids.WATER)) {
+                if (hasFluid) {
                     var heat = blockEntity.heat;
                     if (level.getBlockState(blockPos.below()).is(ToilAndTroubleBlockTags.HEAT_SOURCE)) {
                         if (heat < 75) {
@@ -187,8 +192,6 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
                     } else if (heat > 0) {
                         blockEntity.heat = Math.max(heat - 4, 0);
                     }
-                } else {
-                    blockEntity.heat = 0;
                 }
                 blockEntity.sync();
             }

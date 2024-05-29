@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/crop",
+  "textures": {
+    "crop": "toil-and-trouble:block/mandrake_stage_4"
+  }
+}

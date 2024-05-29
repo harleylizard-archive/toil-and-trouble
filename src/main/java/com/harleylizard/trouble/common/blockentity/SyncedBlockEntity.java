@@ -31,6 +31,7 @@ public class SyncedBlockEntity extends BlockEntity {
     }
 
     public final void sync() {
+        level.getChunk(getBlockPos()).setUnsaved(true);
         level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_ALL);
     }
 }

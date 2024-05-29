@@ -1,4 +1,4 @@
-package com.harleylizard.trouble.client.renderer;
+package com.harleylizard.trouble.client.renderer.blockentity;
 
 import com.harleylizard.trouble.common.blockentity.BrewingCauldronBlockEntity;
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
@@ -20,7 +20,7 @@ public final class BrewColor {
 
     public static int getColor(int color, BrewingCauldronBlockEntity.Ingredients ingredients) {
         for (var ingredient : ingredients) {
-            var weight = (1.0F / 128.0F) * ingredient.getCount();
+            var weight = (1.0F / 24.0F) * ingredient.getCount();
             color = lerp(color, getColor(ingredient), weight);
         }
         return color;

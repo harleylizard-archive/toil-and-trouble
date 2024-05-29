@@ -1,4 +1,9 @@
 {
   "itemGroup.toilAndTrouble": "Toil & Trouble",
-  "block.toil-and-trouble.brewing_cauldron": "Brewing Cauldron"
+  "block.toil-and-trouble.bellows": "Bellows",
+  "block.toil-and-trouble.brewing_cauldron": "Brewing Cauldron",
+  "item.toil-and-trouble.cotton_seeds": "Cotton Seeds",
+  "item.toil-and-trouble.mandrake_seeds": "Mandrake Seeds",
+  "item.toil-and-trouble.mandrake_spawn_egg": "Mandrake Spawn Egg",
+  "entity.toil-and-trouble.mandrake": "Mandrake"
 }

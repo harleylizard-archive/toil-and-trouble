@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.Containers;
 import net.minecraft.world.level.Level;
 
 public final class EmptyCauldronRitual implements Ritual {
@@ -15,15 +16,21 @@ public final class EmptyCauldronRitual implements Ritual {
     @Override
     public void apply(Level level, BlockPos blockPos) {
         if (!level.isClientSide && level.getBlockEntity(blockPos) instanceof BrewingCauldronBlockEntity blockEntity) {
+            var j = blockPos.getX();
+            var k = blockPos.getY();
+            var l = blockPos.getZ();
+
+            for (var itemStack : blockEntity.getIngredients()) {
+                Containers.dropItemStack(level, j, k + 1.0D, l, itemStack);
+            }
             blockEntity.clear();
 
-            var x = blockPos.getX() + 0.5D;
-            var y = blockPos.getY() + 0.5D;
-            var z = blockPos.getZ() + 0.5D;
+            var x = j + 0.5D;
+            var y = k + 0.5D;
+            var z = l + 0.5D;
             for (var i = 0; i < 10; i++) {
                 level.addParticle(ParticleTypes.CLOUD, x, y, z, 0, 0, 0);
             }
-
             level.playSound(null, blockPos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
         }
     }

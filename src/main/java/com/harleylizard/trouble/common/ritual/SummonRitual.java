@@ -30,7 +30,7 @@ public final class SummonRitual implements Ritual {
             }
 
             var x = blockPos.getX() + 0.5D;
-            var y = blockPos.getY();
+            var y = blockPos.getY() + (4.0F / 16.0F);
             var z = blockPos.getZ() + 0.5D;
             entity.setPos(x, y, z);
             level.addFreshEntity(entity);
