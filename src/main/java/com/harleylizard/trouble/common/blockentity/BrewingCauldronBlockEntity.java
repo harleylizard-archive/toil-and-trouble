@@ -2,12 +2,13 @@ package com.harleylizard.trouble.common.blockentity;
 
 import com.harleylizard.trouble.common.block.BellowsBlock;
 import com.harleylizard.trouble.common.block.BrewingCauldron;
-import com.harleylizard.trouble.common.brewing.BrewingRitual;
+import com.harleylizard.trouble.common.brewing.HasIngredients;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleBlockEntityTypes;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleBlocks;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleSounds;
 import com.harleylizard.trouble.common.tags.ToilAndTroubleBlockTags;
 import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.fluid.base.SingleFluidStorage;
@@ -54,7 +55,7 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
     };
 
     private final Ingredients ingredients = new Ingredients();
-    private final Queue<BrewingRitual> queue = new LinkedList<>();
+    private final Queue<HasIngredients> queue = new LinkedList<>();
 
     private int ticks;
     private int heat;
@@ -79,7 +80,7 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
         if (!queue.isEmpty()) {
             var listTag = new ListTag();
             for (var ritual : queue) {
-                var tag = StringTag.valueOf(BrewingRitual.REGISTRY.get(ritual).toString());
+                var tag = StringTag.valueOf(HasIngredients.DEPRECATED_REGISTRY.get(ritual).toString());
                 listTag.add(tag);
             }
             compoundTag.put("queue", listTag);
@@ -103,34 +104,22 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
         if (compoundTag.contains("queue", Tag.TAG_LIST)) {
             var listTag = compoundTag.getList("queue", Tag.TAG_STRING);
             for (var tag : listTag) {
-                queue.offer(BrewingRitual.REGISTRY.get(new ResourceLocation(tag.getAsString())));
+                queue.offer(HasIngredients.DEPRECATED_REGISTRY.get(new ResourceLocation(tag.getAsString())));
             }
         }
     }
 
-    public void queue(BrewingRitual brewingRitual) {
-        queue.offer(brewingRitual);
+    public void queue(HasIngredients hasIngredients) {
+        queue.offer(hasIngredients);
     }
 
     public void poll() {
         if (!queue.isEmpty()) {
-            var brewingRitual = queue.poll();
-            if (!ingredients.canBrewRitual(brewingRitual)) {
+            var hasIngredients = queue.poll();
+            if (!ingredients.canBrew(hasIngredients)) {
                 return;
             }
-            var ritual = brewingRitual.getRitual();
-            if (ritual != null) {
-                ingredients.consume(brewingRitual);
-
-                ritual.apply(level, getBlockPos());
-
-                if (!fluidStorage.isResourceBlank()) {
-                    try (var transaction = Transaction.openOuter()) {
-                        fluidStorage.extract(fluidStorage.variant, FluidConstants.BUCKET, transaction);
-                        transaction.commit();
-                    }
-                }
-            }
+            hasIngredients.whenBrewed(this, ingredients);
         }
     }
 
@@ -237,14 +226,29 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
             }
         }
 
-        public void consume(BrewingRitual ritual) {
-            for (var ingredient : ritual.getIngredients()) {
-                for (var stack : list) {
-                    if (stack.is(ingredient.getItem())) {
-                        stack.shrink(ingredient.getCount());
+        public void consume(HasIngredients hasIngredients) {
+            for (var ingredient : hasIngredients) {
+                for (var itemStack : list) {
+                    if (itemStack.is(ingredient.getItem())) {
+                        itemStack.shrink(ingredient.getCount());
                     }
                 }
             }
+        }
+
+        public boolean canBrew(HasIngredients hasIngredients) {
+            var map = new Object2BooleanArrayMap<Item>();
+            for (var ingredient : hasIngredients) {
+                var item = ingredient.getItem();
+                map.put(item, false);
+
+                for (var thisIngredient : list) {
+                    if (thisIngredient.is(item)) {
+                        map.put(item, thisIngredient.getCount() >= ingredient.getCount());
+                    }
+                }
+            }
+            return allTrue(map);
         }
 
         public boolean addItem(ItemEntity itemEntity) {
@@ -273,22 +277,6 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
             return ItemStack.EMPTY;
         }
 
-        public boolean canBrewRitual(BrewingRitual ritual) {
-            var ingredients = ritual.getIngredients();
-            var map = new Object2BooleanArrayMap<Item>();
-            for (var itemStack : ingredients) {
-                var item = itemStack.getItem();
-                map.put(item, false);
-
-                for (var stack : list) {
-                    if (stack.is(item)) {
-                        map.put(item, stack.getCount() >= itemStack.getCount());
-                    }
-                }
-            }
-            return map.values().stream().allMatch(Boolean::booleanValue);
-        }
-
         private void clear() {
             list.clear();
         }
@@ -301,6 +289,17 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
         @Override
         public Iterator<ItemStack> iterator() {
             return list.iterator();
+        }
+
+        private static <T> boolean allTrue(Object2BooleanMap<T> map) {
+            var values = map.values();
+            var i = 0;
+            for (var b : values) {
+                if (b) {
+                    i++;
+                }
+            }
+            return i == values.size();
         }
     }
 }

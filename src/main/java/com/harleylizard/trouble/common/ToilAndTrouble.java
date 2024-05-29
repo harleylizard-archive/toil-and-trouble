@@ -2,7 +2,7 @@ package com.harleylizard.trouble.common;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
-import com.harleylizard.trouble.common.brewing.BrewingRitual;
+import com.harleylizard.trouble.common.brewing.Brewing;
 import com.harleylizard.trouble.common.entity.MandrakeEntity;
 import com.harleylizard.trouble.common.registry.*;
 import com.harleylizard.trouble.common.ritual.ConfiguredRitual;
@@ -48,7 +48,7 @@ public final class ToilAndTrouble implements ModInitializer {
 
         var serverData = ResourceManagerHelper.get(PackType.SERVER_DATA);
         serverData.registerReloadListener(ConfiguredRitual.RELOAD_LISTENER);
-        serverData.registerReloadListener(BrewingRitual.RELOAD_LISTENER);
+        serverData.registerReloadListener(new Brewing());
     }
 
     public static ResourceLocation resourceLocation(String path) {

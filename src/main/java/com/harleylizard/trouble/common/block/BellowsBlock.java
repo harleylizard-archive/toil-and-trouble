@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -24,6 +25,8 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public final class BellowsBlock extends Block implements EntityBlock {
+    private static final EnumProperty<Direction> HORIZONTAL_FACING = BlockStateProperties.HORIZONTAL_FACING;
+
     private static final VoxelShape SHAPE = Maths.rotateShape(Axis.XP.rotationDegrees(90.0F), Stream.of(
             Block.box(1, 1, 13, 15, 15, 16),
             Block.box(2, 2, 5, 14, 14, 13),
@@ -40,13 +43,18 @@ public final class BellowsBlock extends Block implements EntityBlock {
 
     public BellowsBlock(Properties properties) {
         super(properties);
-        registerDefaultState(getStateDefinition().any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+        registerDefaultState(getStateDefinition().any().setValue(HORIZONTAL_FACING, Direction.NORTH));
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext blockPlaceContext) {
-        return super.getStateForPlacement(blockPlaceContext).setValue(BlockStateProperties.HORIZONTAL_FACING, blockPlaceContext.getHorizontalDirection());
+        var blockState = super.getStateForPlacement(blockPlaceContext);
+        var face = blockPlaceContext.getClickedFace().getOpposite();
+        if (!Direction.Plane.HORIZONTAL.test(face)) {
+            return blockState.setValue(HORIZONTAL_FACING, blockPlaceContext.getHorizontalDirection());
+        }
+        return blockState.setValue(HORIZONTAL_FACING, face);
     }
 
     @Override
@@ -71,6 +79,6 @@ public final class BellowsBlock extends Block implements EntityBlock {
     }
 
     public static Direction getDirection(BlockState blockState) {
-        return blockState.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        return blockState.getValue(HORIZONTAL_FACING);
     }
 }

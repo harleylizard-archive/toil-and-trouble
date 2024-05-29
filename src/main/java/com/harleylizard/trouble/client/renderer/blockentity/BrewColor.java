@@ -2,7 +2,7 @@ package com.harleylizard.trouble.client.renderer.blockentity;
 
 import com.harleylizard.trouble.common.ToilAndTrouble;
 import com.harleylizard.trouble.common.blockentity.BrewingCauldronBlockEntity;
-import com.harleylizard.trouble.common.brewing.BrewingRitual;
+import com.harleylizard.trouble.common.brewing.HasIngredients;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
@@ -18,7 +18,7 @@ public final class BrewColor {
         return builder.group(Codec.INT.fieldOf("color").forGetter(brewColor -> brewColor.color)).apply(builder, BrewColor::new);
     });
 
-    private static final Map<BrewingRitual, BrewColor> MAP = new HashMap<>();
+    private static final Map<HasIngredients, BrewColor> MAP = new HashMap<>();
 
     public static final SimpleSynchronousResourceReloadListener RELOAD_LISTENER = new SimpleSynchronousResourceReloadListener() {
         @Override
@@ -39,26 +39,26 @@ public final class BrewColor {
     }
 
     public static int getAsInt(int color, BrewingCauldronBlockEntity.Ingredients ingredients) {
-        BrewingRitual mostComplete = null;
+        HasIngredients mostComplete = null;
         var progress = 0.0F;
         for (var ingredient : ingredients) {
-            for (var brewingRitual : BrewingRitual.getRitual(ingredient.getItem())) {
-                var compared = brewingRitual.compare(ingredients);
+            for (var hasIngredient : HasIngredients.getFrom(ingredient)) {
+                var compared = hasIngredient.compareTo(ingredients);
                 if (compared > progress) {
                     progress = compared;
-                    mostComplete = brewingRitual;
+                    mostComplete = hasIngredient;
                 }
             }
         }
         return mostComplete == null ? color : lerp(color, getOrCreate(mostComplete).color, progress);
     }
 
-    private static BrewColor getOrCreate(BrewingRitual brewingRitual) {
-        return MAP.computeIfAbsent(brewingRitual, BrewColor::createFallback);
+    private static BrewColor getOrCreate(HasIngredients hasIngredients) {
+        return MAP.computeIfAbsent(hasIngredients, BrewColor::createFallback);
     }
 
-    private static BrewColor createFallback(BrewingRitual brewingRitual) {
-        var hashCode = BrewingRitual.REGISTRY.get(brewingRitual).toString().hashCode();
+    private static BrewColor createFallback(HasIngredients hasIngredients) {
+        var hashCode = HasIngredients.DEPRECATED_REGISTRY.get(hasIngredients).toString().hashCode();
         var r = (hashCode >> 16) & 0xFF;
         var g = (hashCode >> 8) & 0xFF;
         var b = (hashCode >> 0) & 0xFF;

@@ -2,6 +2,7 @@ package com.harleylizard.trouble.common.block;
 
 import com.harleylizard.trouble.common.blockentity.BrewingCauldronBlockEntity;
 import com.harleylizard.trouble.common.brewing.BrewingRitual;
+import com.harleylizard.trouble.common.brewing.HasIngredients;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleBlockEntityTypes;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleSounds;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
@@ -83,9 +84,9 @@ public final class BrewingCauldronBlock extends Block implements BrewingCauldron
 
                 level.playSound(null, x, y, z, ToilAndTroubleSounds.WATER_SPLASH, SoundSource.BLOCKS, 0.75F, level.random.nextFloat() + 1.0F);
 
-                var brewingRitual = BrewingRitual.getRitual(ingredients);
-                if (brewingRitual != null) {
-                    blockEntity.queue(brewingRitual);
+                var hasIngredients = HasIngredients.getFrom(ingredients);
+                if (hasIngredients != null) {
+                    blockEntity.queue(hasIngredients);
                 }
                 blockEntity.sync();
             }
