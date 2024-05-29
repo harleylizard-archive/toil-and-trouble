@@ -120,6 +120,12 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
                 return;
             }
             hasIngredients.whenBrewed(this, ingredients);
+            if (!ingredients.isEmpty()) {
+                var next = HasIngredients.getFrom(ingredients);
+                if (next != null) {
+                    queue(next);
+                }
+            }
         }
     }
 

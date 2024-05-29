@@ -6,8 +6,10 @@ import com.harleylizard.trouble.client.renderer.entity.MandrakeRenderer;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleBlockEntityTypes;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleBlocks;
 import com.harleylizard.trouble.common.registry.ToilAndTroubleEntityTypes;
+import com.harleylizard.trouble.common.registry.ToilAndTroubleParticleTypes;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
+import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.renderer.RenderType;
@@ -24,5 +26,7 @@ public final class ToilAndTroubleClient implements ClientModInitializer {
         BlockEntityRendererRegistry.register(ToilAndTroubleBlockEntityTypes.BREWING_CAULDRON, context -> new BrewingCauldronRenderer());
 
         EntityRendererRegistry.register(ToilAndTroubleEntityTypes.MANDRAKE, MandrakeRenderer::new);
+
+        ParticleFactoryRegistry.getInstance().register(ToilAndTroubleParticleTypes.BOILING_BUBBLES, BoilingBubblesParticle.BoilingBubblesParticleProvider::new);
     }
 }

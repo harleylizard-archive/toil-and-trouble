@@ -1,0 +1,12 @@
+{
+  "ingredients": [
+    {
+      "id": "minecraft:mutton",
+      "Count": 1
+    }
+  ],
+  "result": {
+    "id": "minecraft:cooked_mutton",
+    "Count": 1
+  }
+}

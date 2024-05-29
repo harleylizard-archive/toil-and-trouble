@@ -1,6 +1,7 @@
 package com.harleylizard.trouble.client.renderer.blockentity;
 
 import com.harleylizard.trouble.common.blockentity.BrewingCauldronBlockEntity;
+import com.harleylizard.trouble.common.particle.BoilingBubblesParticleOptions;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
@@ -9,7 +10,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.level.material.Fluids;
 
 public final class BrewingCauldronRenderer implements BlockEntityRenderer<BrewingCauldronBlockEntity> {
@@ -49,7 +49,7 @@ public final class BrewingCauldronRenderer implements BlockEntityRenderer<Brewin
             var x = (double) blockPos.getX() + ((random.nextDouble() - random.nextDouble()) * 0.375D) + 0.5D;
             var y = (double) blockPos.getY() + height;
             var z = (double) blockPos.getZ() + ((random.nextDouble() - random.nextDouble()) * 0.375D) + 0.5D;
-            level.addParticle(ParticleTypes.BUBBLE, x, y, z, 0.0, 0.0, 0.0);
+            level.addParticle(new BoilingBubblesParticleOptions(color), x, y, z, 0.0, 0.0, 0.0);
         }
 
         var light = variant.isOf(Fluids.LAVA) ? LightTexture.FULL_BRIGHT : i;

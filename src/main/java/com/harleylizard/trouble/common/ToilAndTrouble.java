@@ -32,6 +32,7 @@ public final class ToilAndTrouble implements ModInitializer {
         ToilAndTroubleBlockEntityTypes.register();
         ToilAndTroubleEntityTypes.register();
         ToilAndTroubleSounds.register();
+        ToilAndTroubleParticleTypes.register();
         ToilAndTroubleRitualTypes.register();
 
         FabricDefaultAttributeRegistry.register(ToilAndTroubleEntityTypes.MANDRAKE, MandrakeEntity.createAttributes());

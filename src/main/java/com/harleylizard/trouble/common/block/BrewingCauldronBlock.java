@@ -9,6 +9,8 @@ import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorageUtil;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -83,6 +85,9 @@ public final class BrewingCauldronBlock extends Block implements BrewingCauldron
                 var z = itemEntity.getZ();
 
                 level.playSound(null, x, y, z, ToilAndTroubleSounds.WATER_SPLASH, SoundSource.BLOCKS, 0.75F, level.random.nextFloat() + 1.0F);
+                for (var i = 0; i < 4; i++) {
+                    level.addParticle(ParticleTypes.SPLASH, x, y, z, 0.0F, 0.0F, 0.0F);
+                }
 
                 var hasIngredients = HasIngredients.getFrom(ingredients);
                 if (hasIngredients != null) {

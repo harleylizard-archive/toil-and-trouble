@@ -1,10 +1,12 @@
 package com.harleylizard.trouble.common.brewing;
 
 import com.harleylizard.trouble.common.blockentity.BrewingCauldronBlockEntity;
+import com.harleylizard.trouble.common.registry.ToilAndTroubleSounds;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +38,10 @@ public final class BrewingRecipe implements HasIngredients {
         var x = blockPos.getX() + 0.5D;
         var y = blockPos.getY() + 1.0D;
         var z = blockPos.getZ() + 0.5D;
-        Containers.dropItemStack(blockEntity.getLevel(), x, y, z, result.copy());
+        var level = blockEntity.getLevel();
+        Containers.dropItemStack(level, x, y, z, result.copy());
+
+        level.playSound(null, blockPos, ToilAndTroubleSounds.SUMMON, SoundSource.BLOCKS, 1.0F, 1.0F);
 
         var fluidStorage = blockEntity.getFluidStorage();
         if (!fluidStorage.isResourceBlank()) {
