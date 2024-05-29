@@ -37,10 +37,10 @@ public final class BrewingCauldronRenderer implements BlockEntityRenderer<Brewin
         var v0 = texture.getV0();
         var v1 = texture.getV1();
 
-        var ingredients = blockEntity.getIngredients();
         var color = FluidVariantRendering.getColor(variant, blockEntity.getLevel(), blockEntity.getBlockPos());
+        var ingredients = blockEntity.getIngredients();
         if (!ingredients.isEmpty()) {
-            color = BrewColor.getColor(color, ingredients);
+            color = BrewColor.getAsInt(color, ingredients);
         }
         if (blockEntity.canBoil()) {
             var level = blockEntity.getLevel();

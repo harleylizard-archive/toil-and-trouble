@@ -99,8 +99,8 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
         heat = compoundTag.getInt("heat");
         delay = compoundTag.getInt("delay");
 
+        queue.clear();
         if (compoundTag.contains("queue", Tag.TAG_LIST)) {
-            queue.clear();
             var listTag = compoundTag.getList("queue", Tag.TAG_STRING);
             for (var tag : listTag) {
                 queue.offer(BrewingRitual.REGISTRY.get(new ResourceLocation(tag.getAsString())));
@@ -174,8 +174,8 @@ public final class BrewingCauldronBlockEntity extends SyncedBlockEntity {
                 blockEntity.heat = 0;
             }
             if (blockEntity.delay >= 3) {
-                blockEntity.poll();
                 blockEntity.delay = 0;
+                blockEntity.poll();
                 blockEntity.sync();
             }
             var ticks = blockEntity.ticks;

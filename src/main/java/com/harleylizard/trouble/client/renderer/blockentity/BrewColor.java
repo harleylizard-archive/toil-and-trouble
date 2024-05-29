@@ -1,32 +1,72 @@
 package com.harleylizard.trouble.client.renderer.blockentity;
 
+import com.harleylizard.trouble.common.ToilAndTrouble;
 import com.harleylizard.trouble.common.blockentity.BrewingCauldronBlockEntity;
-import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import net.minecraft.core.registries.BuiltInRegistries;
+import com.harleylizard.trouble.common.brewing.BrewingRitual;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class BrewColor {
-    private static final Object2IntMap<Item> ITEM_TO_COLOR = new Object2IntArrayMap<>();
+    private static final Codec<BrewColor> CODEC = RecordCodecBuilder.create(builder -> {
+        return builder.group(Codec.INT.fieldOf("color").forGetter(brewColor -> brewColor.color)).apply(builder, BrewColor::new);
+    });
 
-    private BrewColor() {}
+    private static final Map<BrewingRitual, BrewColor> MAP = new HashMap<>();
 
-    public static int getColor(int color, BrewingCauldronBlockEntity.Ingredients ingredients) {
-        for (var ingredient : ingredients) {
-            var weight = (1.0F / 24.0F) * ingredient.getCount();
-            color = lerp(color, getColor(ingredient), weight);
+    public static final SimpleSynchronousResourceReloadListener RELOAD_LISTENER = new SimpleSynchronousResourceReloadListener() {
+        @Override
+        public ResourceLocation getFabricId() {
+            return ToilAndTrouble.resourceLocation("brew_color");
         }
-        return color;
+
+        @Override
+        public void onResourceManagerReload(ResourceManager resourceManager) {
+            MAP.clear();
+        }
+    };
+
+    private final int color;
+
+    private BrewColor(int color) {
+        this.color = color;
     }
 
-    public static int lerp(int left, int right, double a) {
+    public static int getAsInt(int color, BrewingCauldronBlockEntity.Ingredients ingredients) {
+        BrewingRitual mostComplete = null;
+        var progress = 0.0F;
+        for (var ingredient : ingredients) {
+            for (var brewingRitual : BrewingRitual.getRitual(ingredient.getItem())) {
+                var compared = brewingRitual.compare(ingredients);
+                if (compared > progress) {
+                    progress = compared;
+                    mostComplete = brewingRitual;
+                }
+            }
+        }
+        return mostComplete == null ? color : lerp(color, getOrCreate(mostComplete).color, progress);
+    }
+
+    private static BrewColor getOrCreate(BrewingRitual brewingRitual) {
+        return MAP.computeIfAbsent(brewingRitual, BrewColor::createFallback);
+    }
+
+    private static BrewColor createFallback(BrewingRitual brewingRitual) {
+        var hashCode = BrewingRitual.REGISTRY.get(brewingRitual).toString().hashCode();
+        var r = (hashCode >> 16) & 0xFF;
+        var g = (hashCode >> 8) & 0xFF;
+        var b = (hashCode >> 0) & 0xFF;
+
+        return new BrewColor(r << 16 | g << 8 | b | 0xFF << 24);
+    }
+
+    private static int lerp(int left, int right, double a) {
         var r = (left >> 16) & 0xFF;
         var g = (left >>  8) & 0xFF;
         var b = (left >>  0) & 0xFF;
@@ -35,25 +75,9 @@ public final class BrewColor {
         var k = (right >>  8) & 0xFF;
         var l = (right >>  0) & 0xFF;
 
-        var u = (int) Mth.lerp(a, r, j);
-        var v = (int) Mth.lerp(a, g, k);
-        var w = (int) Mth.lerp(a, b, l);
-        return  0xFF << 24 |
-                (u & 0xFF) << 16 |
-                (v & 0xFF) << 8 |
-                (w & 0xFF) << 0;
-    }
-
-    private static int getColor(ItemStack itemStack) {
-        return ITEM_TO_COLOR.computeIfAbsent(itemStack.getItem(), item -> getColor(BuiltInRegistries.ITEM.getKey((Item) item))) | 0xFF << 24;
-    }
-
-    private static int getColor(ResourceLocation resourceLocation) {
-        try {
-            var bytes = MessageDigest.getInstance("SHA-256").digest(resourceLocation.toString().getBytes("UTF-8"));
-            return ((bytes[0] & 0xFF) << 16) | ((bytes[1] & 0xFF) << 8) | (bytes[2] & 0xFF) & 0xFFFFFF;
-        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
-            return 0;
-        }
+        var u = (int) Mth.lerp(a, r, j) & 0xFF;
+        var v = (int) Mth.lerp(a, g, k) & 0xFF;
+        var w = (int) Mth.lerp(a, b, l) & 0xFF;
+        return u << 16 | v << 8 | w << 0 | 0xFF << 24;
     }
 }

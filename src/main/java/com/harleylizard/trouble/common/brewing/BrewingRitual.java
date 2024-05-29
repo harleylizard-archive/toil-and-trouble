@@ -60,6 +60,18 @@ public final class BrewingRitual implements HasIngredients {
         return ConfiguredRitual.getRitual(configuredRitual);
     }
 
+    public float compare(BrewingCauldronBlockEntity.Ingredients ingredients) {
+        var i = 0;
+        for (var left : ingredients) {
+            for (var right : this.ingredients) {
+                if (left.is(right.getItem()) && left.getCount() >= right.getCount()) {
+                    i++;
+                }
+            }
+        }
+        return (float) i / (float) this.ingredients.size();
+    }
+
     @Override
     public List<ItemStack> getIngredients() {
         return ingredients;
@@ -80,5 +92,9 @@ public final class BrewingRitual implements HasIngredients {
             }
         }
         return null;
+    }
+
+    public static List<BrewingRitual> getRitual(Item item) {
+        return MULTI_MAP.get(item);
     }
 }

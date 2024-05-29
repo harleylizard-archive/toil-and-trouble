@@ -9,8 +9,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
 public final class ToilAndTroubleBlocks {
-    public static final Block BELLOWS = new BellowsBlock(Properties.of());
-    public static final Block BREWING_CAULDRON = new BrewingCauldronBlock(Properties.of().lightLevel(BrewingCauldron::getLightLevel));
+    public static final Block BELLOWS = new BellowsBlock(Properties.copy(Blocks.OAK_PLANKS));
+    public static final Block BREWING_CAULDRON = new BrewingCauldronBlock(Properties.copy(Blocks.CAULDRON).lightLevel(BrewingCauldron::getLightLevel));
     public static final Block COTTON = new CottonCropBlock(cropProperties());
     public static final Block MANDRAKE = new MandrakeCropBlock(cropProperties());
 
